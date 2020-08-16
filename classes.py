@@ -105,7 +105,6 @@ class Layer:
 
                 else:
 
-                    print("ran")
                     #segments.append(Segment(pointsInSegment))
                     
                     self.segments_in_layer.append(Segment(pointsInSegment))

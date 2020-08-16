@@ -1,4 +1,5 @@
 from classes import *
+from path import *
 import re
 
 
@@ -28,10 +29,10 @@ def stripFile(path):
     return snipped_code
 
 
-def extractPointsAndLayers(path):
+def extractPointsAndLayers(path, layers):
 
     
-    global layers
+    #global layers
 
     lines = []
 
@@ -113,24 +114,9 @@ def extractPointsAndLayers(path):
 
 
   
-segments = []
-layers = []
 
-extractPointsAndLayers("babycode.txt")
 
-for layer in layers:
 
-    layer.print_layer()
-
-for layer in layers:
-
-    layer.extract_segments()
-
-    for segment in layer.segments_in_layer:
-
-        print("new segment")
-        segment.print_segment()
-    
 
 
 
