@@ -8,14 +8,14 @@ clearance = 2
 
 #iterate over all segments
 
-for segments in all_layer_segments:
+for segment in all_layer_segments:
 
     #this list tracks the location of each point:
     #"a1", "a2", or "limbo"
     
     point_locations = []
 
-    for point in segments.point:
+    for point in segment.point:
 
         #if point is below a1 clearance line
 

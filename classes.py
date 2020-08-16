@@ -40,6 +40,9 @@ class Layer:
     # layer_no is redundant since we're calculating from Z value
     layer_index = 0
     segments_in_layer = []
+    a1_segments = []
+    a2_segments = []
+    limbo_segments = []
 
     # points: stores all the points
     points = []
@@ -49,6 +52,9 @@ class Layer:
         self.layer_index = layer_index
         self.segments_in_layer = []
         self.points = []
+        self.a1_segments = []
+        self.a2_segments = []
+        self.limbo_segments = []
 
     def add_point(self, G_value, F_value, X_value, Y_value, Z_value, E_value):
 
@@ -67,87 +73,67 @@ class Layer:
     def extract_segments(self):
 
         pointsInSegment = []
-##        i = 1
-##        previousPoint = self.points[i - 1]
-##        currentPoint = self.points[i]
+        ##        i = 1
+        ##        previousPoint = self.points[i - 1]
+        ##        currentPoint = self.points[i]
 
-        #might need a -1 or +1, will see when I run
+        # might need a -1 or +1, will see when I run
 
         for i, point in enumerate(self.points):
 
-            if (i == 0):
+            if i == 0:
 
                 pass
 
-            #is the segment currently empty? in that case, check for a non-zero
-            #E value to be the second point. Once that's point, store the
-            #previous E value as the beginning of the segment.
-            
+            # is the segment currently empty? in that case, check for a non-zero
+            # E value to be the second point. Once that's point, store the
+            # previous E value as the beginning of the segment.
+
             elif len(pointsInSegment) == 0:
 
-                if (self.points[i].E_value != 0):
+                if self.points[i].E_value != 0:
 
                     pointsInSegment.append(self.points[i - 1])
                     pointsInSegment.append(self.points[i])
 
-            #does the list already have a first and second point?
-            
+            # does the list already have a first and second point?
+
             else:
 
-                #are there more points?
+                # are there more points?
 
-                if (self.points[i].E_value != 0):
+                if self.points[i].E_value != 0:
 
                     pointsInSegment.append(self.points[i])
 
-
-                #if there are no more points in this segment
+                # if there are no more points in this segment
 
                 else:
 
-                    #segments.append(Segment(pointsInSegment))
-                    
+                    # segments.append(Segment(pointsInSegment))
+
                     self.segments_in_layer.append(Segment(pointsInSegment))
                     pointsInSegment = []
-                    
+
+
 ##            i += 1
 ##            previousPoint = self.points[i - 1]
 ##            currentPoint = self.points[i]
-            
+
 
 class Segment:
 
-    #stores points
+    # stores points
 
     points = []
-
 
     def __init__(self, pointsList):
 
         self.points = pointsList
-
 
     def print_segment(self):
 
         for point in self.points:
 
             point.print_point()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

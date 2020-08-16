@@ -8,43 +8,36 @@ layers = []
 
 extractPointsAndLayers("babycode.txt", layers)
 
-for layer in layers:
+# for layer in layers:
 
-    layer.print_layer()
+#     layer.print_layer()
 
 for layer in layers:
 
     layer.extract_segments()
     print("\nnew layer")
 
-    for segment in layer.segments_in_layer:
+    # for segment in layer.segments_in_layer:
 
-        print("new segment")
-        segment.print_segment()
-
-# PART 5
-
-unvisited_segments = layers[0].segments_in_layer
-
-visited_segments = []
-
-a1 = []  # path of arm
-current_point = Point(0, 3600, 0, 0, 0, 0)  # start
-
-while len(unvisited_segments) > 0:
-    i = get_closest_segment(unvisited_segments, current_point)
-
-    for point in unvisited_segments[i].points:
-        a1.append(point)
-    current_point = unvisited_segments[i].points[-1]
-    visited_segments.append(unvisited_segments[i])
-    del unvisited_segments[i]
+    #     print("new segment")
+    #     segment.print_segment()
 
 
-# END PART 5
+# PART 5 - Segment sorter
+clearance = 2  # clearance between arm areas
+
+segment_sorting(layers, clearance)
+
+# PART 6 - Path Generator
+
+home1 = Point(0, 3600, 0, 0, 0, 0)
+home2 = Point(0, 3600, 200, 200, 0, 0)
+
+a1 = path_gen(layers, home1, "a1")
+a2 = path_gen(layers, home2, "a2")
+
 
 print("\npath:")
 
-for thing in a1:
-
-    thing.print_point()
+for point in a2:
+    point.print_point()
