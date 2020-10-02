@@ -251,7 +251,7 @@ elif len(a2.path) == 1:
 
 ###
 
-while True:
+while False:
 
     gameDisplay.fill(white)
 
