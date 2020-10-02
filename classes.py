@@ -11,21 +11,21 @@ class Point:  # Each line of gcode is a point
         self.E_value = E_value
 
     # debugging
-    # def print_point(self):
+    def print_point(self):
 
-    #     print(
-    #         str(self.G_value)
-    #         + ", "
-    #         + str(self.F_value)
-    #         + ", "
-    #         + str(self.X_value)
-    #         + ", "
-    #         + str(self.Y_value)
-    #         + ", "
-    #         + str(self.Z_value)
-    #         + ", "
-    #         + str(self.E_value)
-    #     )
+        print(
+            str(self.G_value)
+            + ", "
+            + str(self.F_value)
+            + ", "
+            + str(self.X_value)
+            + ", "
+            + str(self.Y_value)
+            + ", "
+            + str(self.Z_value)
+            + ", "
+            + str(self.E_value)
+        )
 
 
 class Segment:  # a Segment is a list of points connected by extrusion
@@ -34,13 +34,13 @@ class Segment:  # a Segment is a list of points connected by extrusion
         self.points = pointsList
 
     # debugging
-    # def print_segment(self):
+    def print_segment(self):
 
-    #     print("new segment")
+        print("new segment")
 
-    #     for point in self.points:
+        for point in self.points:
 
-    #         point.print_point()
+            point.print_point()
 
 
 class Layer:  # contains every point and segment
@@ -60,13 +60,13 @@ class Layer:  # contains every point and segment
         self.points.append(Point(G_value, F_value, X_value, Y_value, Z_value, E_value))
 
     # debugging
-    # def print_layer(self):
+    def print_layer(self):
 
-    #     for point in self.points:
+        for point in self.points:
 
-    #         point.print_point()
+            point.print_point()
 
-    #     print("end layer")
+        print("end layer")
 
     def extract_segments(self):  # extracts segments from all points list
 

@@ -55,12 +55,16 @@ def extractPointsAndLayers(path, layers, scale, offset):
 
         lines.append(line)
 
+    
+
     layer_index = -1
     current_Z_value = -696969  # garbage value
 
     rot = 0  # initialize rotation
 
     for line in lines:
+
+        isPoint = False
 
         patternG = re.compile(r"G([0-9.]+)(\s|$)")
         matches = patternG.search(line)
@@ -82,18 +86,14 @@ def extractPointsAndLayers(path, layers, scale, offset):
 
         if matches != None:
             X_value = (float(matches.group(1)) * scale) - offset
+            isPoint = True
 
         patternY = re.compile(r"Y([0-9.]+)(\s|$)")
         matches = patternY.search(line)
 
         if matches != None:
             Y_value = (float(matches.group(1)) * scale) - offset
-
-        patternZ = re.compile(r"Z([0-9.]+)(\s|$)")
-        matches = patternZ.search(line)
-
-        if matches != None:
-            Z_value = float(matches.group(1))
+            isPoint = True
 
         patternE = re.compile(r"E([0-9.]+)(\s|$)")
         matches = patternE.search(line)
@@ -104,17 +104,21 @@ def extractPointsAndLayers(path, layers, scale, offset):
         else:
             E_value = 0
 
-        if Z_value != current_Z_value:
+        patternZ = re.compile(r"Z([0-9.]+)(\s|$)")
+        matches = patternZ.search(line)
 
-            current_Z_value = Z_value
+        if matches != None:
+            Z_value = float(matches.group(1))
             layer_index += 1
             rot += 90
             if rot == 360:
                 rot = 0
-            layers.append(Layer(layer_index, current_Z_value))
+            layers.append(Layer(layer_index, Z_value))
+            isPoint = True
 
-        X_value, Y_value = rotatePoints((X_value, Y_value), rot)
+        if isPoint == True:
+            X_value, Y_value = rotatePoints((X_value, Y_value), rot)
 
-        layers[layer_index].add_point(
-            G_value, F_value, X_value, Y_value, Z_value, E_value
-        )
+            layers[layer_index].add_point(
+                G_value, F_value, X_value, Y_value, Z_value, E_value
+            )

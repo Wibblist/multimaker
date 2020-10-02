@@ -31,7 +31,12 @@ hours = 0
 
 currentLayer = 0
 previousLayer = 0
+
+file_to_print = "tf.gcode"
+scale = 1
 offset = 0
+framerate = 120
+debug = "off"
 
 donePrinting = False
 
@@ -137,13 +142,97 @@ def drawModel(arm):
                 )
 
 
+def readconfig(path):
+
+    global file_to_print, scale, offset, framerate, debug
+
+    with open(path, "r") as f:  # open file in read mode
+
+        contents = f.read()
+
+        pattern = re.compile(r"(.*)\n")
+
+        for line in contents:
+            matches = pattern.finditer(contents)
+
+        for i, match in enumerate(matches):
+
+            if i == 0:
+                file_to_print = match.group(1)
+
+            elif i == 1:
+                scale = match.group(1)
+
+            elif i == 2:
+                offset = match.group(1)
+
+            elif i == 3:
+                framerate = int(match.group(1))
+
+            elif i == 4:
+
+                debug = match.group(1)
+
+
+def writeOutput(arm):
+
+    if arm == a1:
+
+        f = open("export1.txt", "w+")
+
+    elif arm == a2:
+
+        f = open("export2.txt", "w+")
+
+    current_Z = -696969
+
+    for point in arm.path:
+        output = (
+            "G"
+            + str(point.G_value)
+            + " F"
+            + str(point.F_value)
+            + " X"
+            + str(round(point.X_value, 3))
+            + " Y"
+            + str(round(point.Y_value, 3))
+            + " Z"
+            + str(round(point.Z_value, 1))
+            + " E"
+            + str(round(point.E_value, 5))
+            + "\n"
+        )
+
+        G = "G" + str(point.G_value)
+        F = " F" + str(point.F_value)
+        X = " X" + str(round(point.X_value, 3))
+        Y = " Y" + str(round(point.Y_value, 3))
+
+        if point.Z_value != current_Z:
+            Z = " Z" + str(round(point.Z_value, 1))
+            current_Z = point.Z_value
+
+        else:
+
+            Z = ""
+
+        E = " E" + str(round(point.E_value, 5))
+
+        output = G + F + X + Y + Z + E + "\n"
+
+        f.write(output)
+    f.close()
+
+
 segments = []
 layers = []
 
-file_to_print = "m2.gcode"
-scale = 1
-offset = 0
-framerate = 240
+readconfig("config.txt")
+
+##file_to_print = "tf.gcode"
+##scale = 1
+##offset = 0
+##framerate = 120
 
 # file_to_print = input("Which file should be used?\n")
 # scale = int(input("What is the scale?\n"))
@@ -158,19 +247,21 @@ speed = 10
 
 extractPointsAndLayers(file_to_print, layers, int(scale), int(offset))
 
-# for layer in layers:
+if debug == "on":
+    for layer in layers:
 
-#     layer.print_layer()
+        layer.print_layer()
 
 for layer in layers:
 
     layer.extract_segments()
 ##    print("\nnew layer")
 
-# for segment in layer.segments_in_layer:
+if debug == "on":
+    for segment in layer.segments_in_layer:
 
-#     print("new segment")
-#     segment.print_segment()
+        ##        print("new segment")
+        segment.print_segment()
 
 
 # PART 5 - Segment sorter
@@ -183,20 +274,21 @@ segment_sorting(layers, clearance)
 home1 = Point(0, 3600, 0, 0, 0, 0)
 home2 = Point(0, 3600, 200, 200, 0, 0)
 
-##print("\na1 points:")
-##
-##for segment in layers[0].a1_segments:
-##    segment.print_segment()
-##
-##    print("\na2 points:")
-##
-##for segment in layers[0].a2_segments:
-##    segment.print_segment()
-##
-##print("\nlimbo")
-##
-##for segment in layers[0].limbo_segments:
-##    segment.print_segment()
+if debug == "on":
+    print("\na1 points:")
+
+    for segment in layers[0].a1_segments:
+        segment.print_segment()
+
+    print("\na2 points:")
+
+    for segment in layers[0].a2_segments:
+        segment.print_segment()
+
+    print("\nlimbo")
+
+    for segment in layers[0].limbo_segments:
+        segment.print_segment()
 
 a1 = Arm(home1)
 a2 = Arm(home2)
@@ -205,37 +297,23 @@ a2 = Arm(home2)
 a1.path = path_gen(layers, home1, "a1")
 a2.path = path_gen(layers, home2, "a2")
 
-f = open("export.txt", "w+")
-for point in a1.path:
-    output = (
-        "G"
-        + str(point.G_value)
-        + " F"
-        + str(round(point.F_value, 3))
-        + " X"
-        + str(round(point.X_value, 3))
-        + " Y"
-        + str(round(point.Y_value, 3))
-        + " Z"
-        + str(round(point.Z_value, 1))
-        + " E"
-        + str(round(point.E_value, 5))
-        + "\n"
-    )
-    f.write(output)
-f.close()
+writeOutput(a1)
+writeOutput(a2)
 
-##print("\na1 path")
-##
-##for point in a1.path:
-##
-##    point.print_point()
-##
-##print("\na2 path")
-##
-##for point in a2.path:
-##
-##    point.print_point()
+if debug == "on":
+
+    print("\na1 path")
+
+    for point in a1.path:
+
+        point.print_point()
+
+    print("\na2 path")
+
+    for point in a2.path:
+
+        point.print_point()
+
 
 if (len(a1.path) > 1) and (len(a2.path) > 1):
 
@@ -335,6 +413,10 @@ while True:
 
     textsurface = myfont.render(str(seconds), True, black)
     text_rect = textsurface.get_rect(center=(200, 70))
+    gameDisplay.blit(textsurface, text_rect)
+
+    textsurface = myfont.render(str(currentLayer), True, black)
+    text_rect = textsurface.get_rect(center=(100, 50))
     gameDisplay.blit(textsurface, text_rect)
 
     for event in pygame.event.get():
