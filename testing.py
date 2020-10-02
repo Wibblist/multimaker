@@ -1,3 +1,5 @@
-a = True
+z is None
 
-print(not (a))
+if z != 11:
+    print("works")
+

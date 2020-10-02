@@ -3,9 +3,6 @@ from path import *
 import re
 import math
 
-##scale = 3
-##offset = 18
-
 
 def stripFile(path):
     pattern = re.compile(r"M107")
@@ -21,7 +18,7 @@ def stripFile(path):
         for match in matches:
             start2end.append(match.span())
 
-    snipped_code = contents[start2end[0][1] + 1 : start2end[1][0] - 1]
+    snipped_code = contents[start2end[0][1] + 1 : start2end[1][0]]
 
     while comment_pattern.search(snipped_code) is not None:
         comment = comment_pattern.search(snipped_code).span()
@@ -48,8 +45,6 @@ def rotatePoints(point, degs):
 
 def extractPointsAndLayers(path, layers, scale, offset):
 
-    # global layers
-
     lines = []
 
     stripped_file = stripFile(path)
@@ -61,18 +56,9 @@ def extractPointsAndLayers(path, layers, scale, offset):
         lines.append(line)
 
     layer_index = -1
-    current_Z_value = -696969
+    current_Z_value = -696969  # garbage value
 
-    # please let the above be improbable
-
-    rot = 0
-
-    G_value = 0
-    F_value = 0
-    X_value = 0
-    Y_value = 0
-    Z_value = 0
-    E_value = 0
+    rot = 0  # initialize rotation
 
     for line in lines:
 
@@ -132,30 +118,3 @@ def extractPointsAndLayers(path, layers, scale, offset):
         layers[layer_index].add_point(
             G_value, F_value, X_value, Y_value, Z_value, E_value
         )
-
-
-##TESTING SEGMENTS
-
-##layers.append(Layer(0))
-##
-##layers[0].add_point(0, 0, 1, 2, 1, 0)
-##layers[0].add_point(0, 0, 3, 4, 1, 1)
-##layers[0].add_point(0, 0, 5, 6, 1, 0)
-##layers[0].add_point(0, 0, 7, 8, 1, 1)
-##layers[0].add_point(0, 0, 9, 10, 1, 0)
-##layers[0].add_point(0, 0, 1, 2, 1, 0)
-##layers[0].add_point(0, 0, 3, 4, 1, 1)
-##layers[0].add_point(0, 0, 5, 6, 1, 0)
-##layers[0].add_point(0, 0, 7, 8, 1, 1)
-##layers[0].add_point(0, 0, 9, 10, 1, 0)
-##
-##
-##layers[0].print_layer()
-##
-##layers[0].extract_segments()
-##
-##for segment in layers[0].segments_in_layer:
-##
-##    print("new segment")
-##    segment.print_segment()
-

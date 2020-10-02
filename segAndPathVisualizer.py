@@ -98,7 +98,7 @@ def drawModel(arm):
 
             elif arm.doneExtruding == False:
 
-                arm.getValuesForExtrude(speed)
+                arm.Extrude(speed)
 
                 if arm.path[arm.i].E_value != 0:
 
@@ -140,10 +140,10 @@ def drawModel(arm):
 segments = []
 layers = []
 
-file_to_print = "F.gcode"
+file_to_print = "m2.gcode"
 scale = 1
 offset = 0
-framerate = 120
+framerate = 240
 
 # file_to_print = input("Which file should be used?\n")
 # scale = int(input("What is the scale?\n"))
@@ -251,7 +251,7 @@ elif len(a2.path) == 1:
 
 ###
 
-while False:
+while True:
 
     gameDisplay.fill(white)
 
