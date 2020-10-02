@@ -1,3 +1,6 @@
+from math import sqrt
+
+
 class Point:
 
     # feels so naked without the type ;-;
@@ -37,7 +40,7 @@ class Point:
 
 class Layer:
 
-    # layer_no is redundant since we're calculating from Z value
+    layer_no = 0
     layer_index = 0
     segments_in_layer = []
     a1_segments = []
@@ -47,7 +50,7 @@ class Layer:
     # points: stores all the points
     points = []
 
-    def __init__(self, layer_index):
+    def __init__(self, layer_index, layer_no):
 
         self.layer_index = layer_index
         self.segments_in_layer = []
@@ -55,6 +58,7 @@ class Layer:
         self.a1_segments = []
         self.a2_segments = []
         self.limbo_segments = []
+        self.layer_no = layer_no
 
     def add_point(self, G_value, F_value, X_value, Y_value, Z_value, E_value):
 
@@ -133,7 +137,89 @@ class Segment:
 
     def print_segment(self):
 
+        print("new segment")
+
         for point in self.points:
 
             point.print_point()
+
+
+class Arm:
+
+    path = []
+    doneExtruding = False
+    i = 0
+    origin = [0, 300]
+    hypo = 0
+    lastPoint = [0, 300]
+    printheadPos = [0, 300]
+    doneWithLayer = False
+    doneWithPath = False
+    #currentLayer = 0
+    #previousLayer = 0
+
+    def __init__(self, origin):
+
+        self.doneExtruding = False
+        self.i = 0
+        self.origin = origin
+        self.hypo = 0
+        self.lastPoint = []
+        self.printheadPos = [origin.X_value + 100, origin.Y_value - 100]
+        self.path = []
+        self.doneWithLayer = False
+        self.doneWithPath = False
+
+    
+    def getValuesForExtrude(self, speed):
+
+        start = self.path[self.i - 1]
+        end = self.path[self.i]
+
+        a1 = sqrt(pow(abs(end.X_value - start.X_value), 2) + pow((abs(end.Y_value - start.Y_value)), 2))
+
+        #print(a1)
+        #print("a2: " + str(a2))
+
+        if self.hypo <= a1:
+
+            if (start.X_value != end.X_value):
+
+                x2 = start.X_value +((end.X_value - start.X_value) * ((self.hypo)/a1))
+
+            else:
+
+                x2 = end.X_value
+
+
+            if (start.Y_value != end.Y_value):
+
+                y2 = start.Y_value +((end.Y_value - start.Y_value) * ((self.hypo)/a1))
+
+            else:
+
+                y2 = end.Y_value
+
+
+            #print(x2)
+            #print(y2)
+
+            self.hypo += speed
+            
+
+        elif (self.hypo <= (a1 + speed)):
+
+            x2 = end.X_value
+            y2 = end.Y_value
+
+            self.doneExtruding = True
+
+            #print("done")
+            
+        self.previousPoint = [start.X_value + 100, 300 - start.Y_value]
+        self.printheadPos = [x2 + 100, 300 - y2 ]
+        
+
+        #print("ran")
+
 

@@ -1,6 +1,10 @@
 from classes import *
 from path import *
 import re
+import math
+
+##scale = 3
+##offset = 18
 
 
 def stripFile(path):
@@ -29,10 +33,22 @@ def stripFile(path):
     return snipped_code
 
 
-def extractPointsAndLayers(path, layers):
+def rotatePoints(point, degs):
 
-    
-    #global layers
+    origin = (100, 100)
+    angle = math.radians(degs)
+
+    ox, oy = origin
+    px, py = point
+
+    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    return qx, qy
+
+
+def extractPointsAndLayers(path, layers, scale, offset):
+
+    # global layers
 
     lines = []
 
@@ -44,11 +60,12 @@ def extractPointsAndLayers(path, layers):
 
         lines.append(line)
 
-
     layer_index = -1
     current_Z_value = -696969
 
-    #please the above be improbable
+    # please let the above be improbable
+
+    rot = 0
 
     G_value = 0
     F_value = 0
@@ -78,13 +95,13 @@ def extractPointsAndLayers(path, layers):
         matches = patternX.search(line)
 
         if matches != None:
-            X_value = float(matches.group(1))
+            X_value = (float(matches.group(1)) * scale) - offset
 
         patternY = re.compile(r"Y([0-9.]+)(\s|$)")
         matches = patternY.search(line)
 
         if matches != None:
-            Y_value = float(matches.group(1))
+            Y_value = (float(matches.group(1)) * scale) - offset
 
         patternZ = re.compile(r"Z([0-9.]+)(\s|$)")
         matches = patternZ.search(line)
@@ -101,24 +118,20 @@ def extractPointsAndLayers(path, layers):
         else:
             E_value = 0
 
-
-        if (Z_value != current_Z_value):
+        if Z_value != current_Z_value:
 
             current_Z_value = Z_value
             layer_index += 1
-            layers.append(Layer(layer_index))
-        
+            rot += 90
+            if rot == 360:
+                rot = 0
+            layers.append(Layer(layer_index, current_Z_value))
+
+        X_value, Y_value = rotatePoints((X_value, Y_value), rot)
+
         layers[layer_index].add_point(
-                G_value, F_value, X_value, Y_value, Z_value, E_value
-            )
-
-
-  
-
-
-
-
-
+            G_value, F_value, X_value, Y_value, Z_value, E_value
+        )
 
 
 ##TESTING SEGMENTS
@@ -145,6 +158,4 @@ def extractPointsAndLayers(path, layers):
 ##
 ##    print("new segment")
 ##    segment.print_segment()
-
-
 

@@ -1,7 +1,10 @@
 from math import sqrt
+from classes import *
 
 
 def segment_sorting(layers, clearance):
+    flip = False
+
     # iterate over all segments
 
     for layer in layers:
@@ -15,29 +18,52 @@ def segment_sorting(layers, clearance):
 
             for point in segment.points:
 
-                # if point is below a1 clearance line
-
-                if point.Y_value < point.X_value + clearance:
-
+                if flip == False:
                     # if point is below a1 clearance line
-                    # AND above a2 clearance line
 
-                    if point.X_value < point.Y_value + clearance:
+                    if (200 - point.Y_value) < point.X_value + clearance:
 
-                        point_locations.append("limbo")
+                        # if point is below a1 clearance line
+                        # AND above a2 clearance line
 
-                    # if point is below a1 clearance line
-                    # AND below a2 clearance line
+                        if point.X_value < (200 - point.Y_value + clearance):
+
+                            point_locations.append("limbo")
+
+                        # if point is below a1 clearance line
+                        # AND below a2 clearance line
+
+                        else:
+
+                            point_locations.append("a2")
+
+                    # if point is above a1 clearance line
 
                     else:
 
-                        point_locations.append("a2")
-
-                # if point is above a1 clearance line
-
+                        point_locations.append("a1")
                 else:
+                    if (point.Y_value) < point.X_value + clearance:
 
-                    point_locations.append("a1")
+                        # if point is below a1 clearance line
+                        # AND above a2 clearance line
+
+                        if point.X_value < (point.Y_value + clearance):
+
+                            point_locations.append("limbo")
+
+                        # if point is below a1 clearance line
+                        # AND below a2 clearance line
+
+                        else:
+
+                            point_locations.append("a2")
+
+                    # if point is above a1 clearance line
+
+                    else:
+
+                        point_locations.append("a1")
 
             # now check the point_locations list to see
             # if any of the points themselves are in limbo
@@ -69,12 +95,14 @@ def segment_sorting(layers, clearance):
                 layer.a2_segments.append(segment)
 
             # add limbo segments to the shorter of the two between a1 and a2
-            if len(layer.a1_segments) > len(layer.a2_segments):
-                layer.a1_segments = layer.a1_segments + layer.limbo_segments
-            else:
-                layer.a2_segments = layer.a2_segments + layer.limbo_segments
 
-            # all_layer_segments.remove(segment)
+        flip = not (flip)
+
+
+##        if len(layer.a1_segments) > len(layer.a2_segments):
+##            layer.a1_segments = layer.a1_segments + layer.limbo_segments
+##        else:
+##            layer.a2_segments = layer.a2_segments + layer.limbo_segments
 
 
 def get_closest_segment(segments_list, current_point):
@@ -91,20 +119,43 @@ def get_closest_segment(segments_list, current_point):
 
 def path_gen(layers, home, arm):
 
+    # NEW POSITION OF
+    arm_path = [home]
+
     for layer in layers:
 
+        limbo_segments = []
+        shorter_path = False
+
         if arm == "a1":
-            unvisited_segments = layer.a1_segments
+            unvisited_segments = layer.a1_segments.copy()
+
+            if len(layer.a1_segments) > len(layer.a2_segments):
+
+                limbo_segments = layer.limbo_segments.copy()
+
+            else:
+
+                shorter_path = True
 
         elif arm == "a2":
-            unvisited_segments = layer.a2_segments
+            unvisited_segments = layer.a2_segments.copy()
+
+            if len(layer.a1_segments) <= len(layer.a2_segments):
+
+                limbo_segments = layer.limbo_segments.copy()
+
+            else:
+
+                shorter_path = True
 
         elif arm == "limbo":
-            unvisited_segments = layer.limbo_segments
+            unvisited_segments = layer.limbo_segments.copy()
 
         visited_segments = []
 
-        arm_path = []
+        # ORIGINAL POSITION OF
+        # arm_path = []
 
         # path of arm
         current_point = home  # start
@@ -115,6 +166,29 @@ def path_gen(layers, home, arm):
             for point in unvisited_segments[i].points:
                 arm_path.append(point)
             current_point = unvisited_segments[i].points[-1]
-            visited_segments.append(unvisited_segments[i])
+            # visited_segments.append(unvisited_segments[i])
             del unvisited_segments[i]
+
+        while len(limbo_segments) > 0:
+            i = get_closest_segment(limbo_segments, current_point)
+
+            for point in limbo_segments[i].points:
+                arm_path.append(point)
+            current_point = limbo_segments[i].points[-1]
+            # visited_segments.append(unvisited_segments[i])
+            del limbo_segments[i]
+
+        if shorter_path == True:
+
+            arm_path.append(
+                Point(
+                    home.G_value,
+                    home.F_value,
+                    home.X_value,
+                    home.Y_value,
+                    layer.layer_no,
+                    home.E_value,
+                )
+            )
+
     return arm_path
