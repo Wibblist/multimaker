@@ -55,8 +55,6 @@ def extractPointsAndLayers(path, layers, scale, offset):
 
         lines.append(line)
 
-    
-
     layer_index = -1
     current_Z_value = -696969  # garbage value
 

@@ -1,5 +1,5 @@
-mt.gcode
-9
-800
-15
-on
+F.gcode
+1
+0
+240
+off

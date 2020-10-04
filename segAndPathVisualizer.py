@@ -294,8 +294,7 @@ a1 = Arm(home1)
 a2 = Arm(home2)
 
 
-a1.path = path_gen(layers, home1, "a1")
-a2.path = path_gen(layers, home2, "a2")
+a1.path, a2.path = path_gen(layers, home1, home2)
 
 writeOutput(a1)
 writeOutput(a2)
