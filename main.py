@@ -7,20 +7,17 @@ pygame.init()
 pygame.font.init()
 myfont = pygame.font.SysFont("Arial", 20)
 
-
 width = 400
 height = 400
 gameDisplay = pygame.display.set_mode((width, height))
 fpsClock = pygame.time.Clock()
-
-origin = [0, 300]
 
 black = (0, 0, 0)
 white = (255, 255, 255)
 blue = (0, 0, 255)
 darkblue = (160, 160, 255)
 red = (255, 0, 0)
-darkred = (255, 160, 160)
+lightred = (255, 160, 160)
 green = (0, 255, 0)
 
 ticks = 0
@@ -79,7 +76,7 @@ def drawModel(arm):
 
     if arm == a1:
 
-        materialColor = darkred
+        materialColor = lightred
         printheadColor = red
 
     elif arm == a2:

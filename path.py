@@ -116,54 +116,105 @@ def get_closest_segment(segments_list, current_point):
         )
     )
 
-def order_segments(unvisited_segments, home):
 
+# def order_segments(unvisited_segments, home):
+
+#     current_point = home
+#     arm_path = [home]
+
+#     while len(unvisited_segments) > 0:
+#         i = get_closest_segment(unvisited_segments, current_point)
+
+#         for point in unvisited_segments[i].points:
+#             arm_path.append(point)
+#         current_point = unvisited_segments[i].points[-1]
+#         del unvisited_segments[i]
+
+#     return current_point, arm_path
+
+
+# def path_gen(layers, home1, home2):
+
+#     a1_path = []
+#     a2_path = []
+#     a1_last = home1
+#     a2_last = home2
+
+#     for layer in layers:
+
+#         a1_segments = layer.a1_segments.copy()
+#         a2_segments = layer.a2_segments.copy()
+#         limbo_segments = layer.limbo_segments.copy()
+
+#         a1_last, ordered_a1_path = order_segments(a1_segments, a1_last)
+#         a2_last, ordered_a2_path = order_segments(a2_segments, a2_last)
+
+#         a1_path += ordered_a1_path
+#         a2_path += ordered_a2_path
+
+#         if len(a1_segments) > len(a2_segments):
+
+#             limbo_last, seg_limbo_path = order_segments(limbo_segments, a1_last)
+#             a1_path += seg_limbo_path
+#             a1_last = limbo_last
+
+#         else:
+
+#             limbo_last, seg_limbo_path = order_segments(limbo_segments, a2_last)
+#             a2_path += seg_limbo_path
+#             a2_last = limbo_last
+
+#     return a1_path, a2_path
+
+
+def path_gen_also(segment_list, home):
+
+    unvisited = segment_list.copy()
+    path = []
     current_point = home
-    arm_path = [home]
 
-    while len(unvisited_segments) > 0:
-        i = get_closest_segment(unvisited_segments, current_point)
+    while len(unvisited) > 0:
+        i = get_closest_segment(unvisited, current_point)
 
-        for point in unvisited_segments[i].points:
-            arm_path.append(point)
-        current_point = unvisited_segments[i].points[-1]
-        del unvisited_segments[i]
+        for point in unvisited[i].points:
+            path.append(point)
+        current_point = unvisited[i].points[-1]
+        del unvisited[i]
 
-    return current_point, arm_path
+    return path
+
+
+def rlen(item):
+
+    l = 0
+
+    if type(item) == list:
+
+        l = sum(rlen(subitem) for subitem in item)
+        return l
+    else:
+        return 1
 
 
 def path_gen(layers, home1, home2):
 
     a1_path = []
     a2_path = []
-    a1_last = home1
-    a2_last = home2
- 
+
     for layer in layers:
 
-        a1_segments = layer.a1_segments.copy()
-        a2_segments = layer.a2_segments.copy()
-        limbo_segments = layer.limbo_segments.copy()
+        a1_path += path_gen_also(layer.a1_segments, home1)
+        a2_path += path_gen_also(layer.a2_segments, home2)
 
+        a1len = rlen(layer.a1_segments)
+        a2len = rlen(layer.a2_segments)
 
-        a1_last, ordered_a1_path = order_segments(a1_segments, a1_last)
-        a2_last, ordered_a2_path = order_segments(a2_segments, a2_last)
+        if a1len > a2len:  # if there are more a1 segments than a2
+            limbo_path = path_gen_also(layer.limbo_segments, a1_path[-1])
+            a1_path += limbo_path  # add limbo list to a1
 
-        a1_path += ordered_a1_path
-        a2_path += ordered_a2_path
-        
-
-        if len(a1_segments) > len(a2_segments):
-            
-            limbo_last, seg_limbo_path = order_segments(limbo_segments, a1_last)
-            a1_path += seg_limbo_path
-            a1_last = limbo_last
-
-        else:
-
-            limbo_last, seg_limbo_path = order_segments(limbo_segments, a2_last)
-            a2_path += seg_limbo_path
-            a2_last = limbo_last
-            
+        elif a1len <= a2len:
+            limbo_path = path_gen_also(layer.limbo_segments, a2_path[-1])
+            a2_path += limbo_path
 
     return a1_path, a2_path
