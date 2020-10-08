@@ -7,6 +7,7 @@ pygame.init()
 pygame.font.init()
 myfont = pygame.font.SysFont("Arial", 20)
 
+
 width = 400
 height = 400
 gameDisplay = pygame.display.set_mode((width, height))
@@ -17,7 +18,7 @@ white = (255, 255, 255)
 blue = (0, 0, 255)
 darkblue = (160, 160, 255)
 red = (255, 0, 0)
-lightred = (255, 160, 160)
+darkred = (255, 160, 160)
 green = (0, 255, 0)
 
 ticks = 0
@@ -25,6 +26,7 @@ ticks = 0
 seconds = 0
 minutes = 0
 hours = 0
+millliseconds = 0
 
 currentLayer = 0
 previousLayer = 0
@@ -33,14 +35,16 @@ file_to_print = "tf.gcode"
 scale = 1
 offset = 0
 framerate = 120
+speed = 10
 debug = "off"
 
 donePrinting = False
+clearance = 2  # clearance between arm areas
 
+home1 = Point(0, 3600, 0, 0, 0, 0, False)
+home2 = Point(0, 3600, 200, 200, 0, 0, False)
 
-# this belong here?
-
-####
+mode = 1
 
 
 def getCurrentLayer():
@@ -61,11 +65,11 @@ def getCurrentLayer():
 
             currentLayer = a1.path[a1.i].Z_value
 
-    elif len(a1.path) == 1:
+    elif (len(a1.path) == 0) and (len(a2.path) > 1):
 
         currentLayer = a2.path[a2.i].Z_value
 
-    elif len(a2.path) == 1:
+    elif len(a2.path) == 0 and (len(a1.path) > 1):
 
         currentLayer = a1.path[a1.i].Z_value
 
@@ -76,7 +80,7 @@ def drawModel(arm):
 
     if arm == a1:
 
-        materialColor = lightred
+        materialColor = darkred
         printheadColor = red
 
     elif arm == a2:
@@ -141,7 +145,7 @@ def drawModel(arm):
 
 def readconfig(path):
 
-    global file_to_print, scale, offset, framerate, debug
+    global file_to_print, scale, offset, framerate, debug, mode
 
     with open(path, "r") as f:  # open file in read mode
 
@@ -168,6 +172,10 @@ def readconfig(path):
 
             elif i == 4:
 
+                mode = int(match.group(1))
+
+            elif i == 5:
+
                 debug = match.group(1)
 
 
@@ -184,21 +192,6 @@ def writeOutput(arm):
     current_Z = -696969
 
     for point in arm.path:
-        output = (
-            "G"
-            + str(point.G_value)
-            + " F"
-            + str(point.F_value)
-            + " X"
-            + str(round(point.X_value, 3))
-            + " Y"
-            + str(round(point.Y_value, 3))
-            + " Z"
-            + str(round(point.Z_value, 1))
-            + " E"
-            + str(round(point.E_value, 5))
-            + "\n"
-        )
 
         G = "G" + str(point.G_value)
         F = " F" + str(point.F_value)
@@ -221,28 +214,11 @@ def writeOutput(arm):
     f.close()
 
 
-segments = []
 layers = []
 
 readconfig("config.txt")
 
-##file_to_print = "tf.gcode"
-##scale = 1
-##offset = 0
-##framerate = 120
-
-# file_to_print = input("Which file should be used?\n")
-# scale = int(input("What is the scale?\n"))
-# offset = int(input("What is the offset?\n"))
-
-
-# #speed = int(input("What is the speed?\n"))
-# framerate = int(input("What is the frame rate?\n"))
-
-speed = 10
-
-
-extractPointsAndLayers(file_to_print, layers, int(scale), int(offset))
+extractPointsAndLayers(file_to_print, layers, int(scale), int(offset), mode)
 
 if debug == "on":
     for layer in layers:
@@ -252,24 +228,20 @@ if debug == "on":
 for layer in layers:
 
     layer.extract_segments()
-##    print("\nnew layer")
+
 
 if debug == "on":
     for segment in layer.segments_in_layer:
 
-        ##        print("new segment")
         segment.print_segment()
 
 
 # PART 5 - Segment sorter
-clearance = 2  # clearance between arm areas
 
-segment_sorting(layers, clearance)
+segment_sorting(layers, clearance, mode)
 
 # PART 6 - Path Generator
 
-home1 = Point(0, 3600, 0, 0, 0, 0)
-home2 = Point(0, 3600, 200, 200, 0, 0)
 
 if debug == "on":
     print("\na1 points:")
@@ -291,7 +263,7 @@ a1 = Arm(home1)
 a2 = Arm(home2)
 
 
-a1.path, a2.path = path_gen(layers, home1, home2)
+a1.path, a2.path = path_gen(layers, home1, home2, mode)
 
 writeOutput(a1)
 writeOutput(a2)
@@ -315,13 +287,14 @@ if (len(a1.path) > 1) and (len(a2.path) > 1):
 
     currentLayer = min(a1.path[1].Z_value, a2.path[1].Z_value)
 
-elif len(a1.path) == 1:
+elif (len(a1.path) == 0) and (len(a2.path) > 1):
 
     currentLayer = a2.path[a2.i].Z_value
 
-elif len(a2.path) == 1:
+elif (len(a2.path) == 0) and (len(a1.path) > 1):
 
     currentLayer = a1.path[a1.i].Z_value
+
 
 ###
 
@@ -343,19 +316,17 @@ while True:
 
         getCurrentLayer()
 
-    if len(a1.path) > 1:
+    if len(a1.path) > 0:
 
         drawModel(a1)
-
     else:
 
         a1.doneWithLayer = True
         a1.i = 1
 
-    if len(a2.path) > 1:
+    if len(a2.path) > 0:
 
         drawModel(a2)
-
     else:
 
         a2.doneWithLayer = True
@@ -372,8 +343,6 @@ while True:
 
         a1.doneWithLayer = False
         a2.doneWithLayer = False
-
-        # print("ran")
 
     if (a1.i == len(a1.path)) and (a2.i == len(a2.path)):
 
@@ -392,6 +361,7 @@ while True:
         ticks += 1
 
         seconds = ticks // framerate
+        milliseconds = (ticks / framerate) * 1000
 
         seconds = seconds % (24 * 3600)
         hours = seconds // 3600
@@ -399,20 +369,24 @@ while True:
         minutes = seconds // 60
         seconds %= 60
 
-    textsurface = myfont.render(str(hours), True, black)
+    textsurface = myfont.render("h: " + str(hours), True, black)
     text_rect = textsurface.get_rect(center=(200, 30))
     gameDisplay.blit(textsurface, text_rect)
 
-    textsurface = myfont.render(str(minutes), True, black)
+    textsurface = myfont.render("m: " + str(minutes), True, black)
     text_rect = textsurface.get_rect(center=(200, 50))
     gameDisplay.blit(textsurface, text_rect)
 
-    textsurface = myfont.render(str(seconds), True, black)
+    textsurface = myfont.render("s: " + str(seconds), True, black)
     text_rect = textsurface.get_rect(center=(200, 70))
     gameDisplay.blit(textsurface, text_rect)
 
-    textsurface = myfont.render(str(currentLayer), True, black)
+    textsurface = myfont.render("Layer: " + str(currentLayer), True, black)
     text_rect = textsurface.get_rect(center=(100, 50))
+    gameDisplay.blit(textsurface, text_rect)
+
+    textsurface = myfont.render("ms: " + str(round(milliseconds)), True, black)
+    text_rect = textsurface.get_rect(center=(300, 50))
     gameDisplay.blit(textsurface, text_rect)
 
     for event in pygame.event.get():

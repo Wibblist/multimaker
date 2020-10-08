@@ -2,13 +2,14 @@ from math import sqrt
 
 
 class Point:  # Each line of gcode is a point
-    def __init__(self, G_value, F_value, X_value, Y_value, Z_value, E_value):
+    def __init__(self, G_value, F_value, X_value, Y_value, Z_value, E_value, support):
         self.G_value = G_value
         self.F_value = F_value
         self.X_value = X_value
         self.Y_value = Y_value
         self.Z_value = Z_value
         self.E_value = E_value
+        self.support = support
 
     # debugging
     def print_point(self):
@@ -55,9 +56,9 @@ class Layer:  # contains every point and segment
         self.layer_no = layer_no
 
     # add point to all points list
-    def add_point(self, G_value, F_value, X_value, Y_value, Z_value, E_value):
+    def add_point(self, G_value, F_value, X_value, Y_value, Z_value, E_value, support):
 
-        self.points.append(Point(G_value, F_value, X_value, Y_value, Z_value, E_value))
+        self.points.append(Point(G_value, F_value, X_value, Y_value, Z_value, E_value, support))
 
     # debugging
     def print_layer(self):
