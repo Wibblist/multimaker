@@ -20,6 +20,13 @@ def stripFile(path):
 
     snipped_code = contents[start2end[0][1] + 1 : start2end[1][0]]
 
+    # while comment_pattern.search(snipped_code) is not None:
+    #     comment = comment_pattern.search(snipped_code).span()
+    #     cstart = comment[0]
+    #     cstop = comment[1]
+    #     if len(snipped_code) > cstop:
+    #         snipped_code = snipped_code[0:cstart:] + snipped_code[cstop::]
+
     return snipped_code
 
 
@@ -52,7 +59,7 @@ def extractPointsAndLayers(path, layers, scale, offset, mode):
     comment_pattern = re.compile(r";(.*):(.*)(\n|$)")
 
     layer_index = -1
-    #current_Z_value = -696969  # garbage value
+    current_Z_value = -696969  # garbage value
 
     rot = 0  # initialize rotation
 
@@ -66,7 +73,7 @@ def extractPointsAndLayers(path, layers, scale, offset, mode):
 
                 support = True
 
-            elif comment.group(1) == "TYPE":
+            elif (comment.group(1) == "TYPE"):
 
                 support = False
 

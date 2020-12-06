@@ -30,6 +30,7 @@ millliseconds = 0
 
 currentLayer = 0
 previousLayer = 0
+currentLayerNo = 1
 
 file_to_print = "tf.gcode"
 scale = 1
@@ -39,7 +40,7 @@ speed = 10
 debug = "off"
 
 donePrinting = False
-clearance = 2  # clearance between arm areas
+clearance = 15  # clearance between arm areas
 
 home1 = Point(0, 3600, 0, 0, 0, 0, False)
 home2 = Point(0, 3600, 200, 200, 0, 0, False)
@@ -47,31 +48,48 @@ home2 = Point(0, 3600, 200, 200, 0, 0, False)
 mode = 1
 
 
+# this belong here?
+
+####
+
+
 def getCurrentLayer():
 
-    global currentLayer
+    global currentLayer, currentLayerNo
 
-    if (len(a1.path) > 1) and (len(a2.path) > 1):
+    layerNo = currentLayer
 
-        if not ((a1.i == len(a1.path)) or (a2.i == len(a2.path))):
+    if mode == 1 or mode == 2:
 
-            currentLayer = min(a1.path[a1.i].Z_value, a2.path[a2.i].Z_value)
+        if (len(a1.path) > 1) and (len(a2.path) > 1):
 
-        elif a1.i == len(a1.path):
+            if not ((a1.i == len(a1.path)) or (a2.i == len(a2.path))):
+
+                currentLayer = min(a1.path[a1.i].Z_value, a2.path[a2.i].Z_value)
+
+            elif a1.i == len(a1.path):
+
+                currentLayer = a2.path[a2.i].Z_value
+
+            elif a2.i == len(a2.path):
+
+                currentLayer = a1.path[a1.i].Z_value
+
+        elif (len(a1.path) == 0) and (len(a2.path) > 1):
 
             currentLayer = a2.path[a2.i].Z_value
 
-        elif a2.i == len(a2.path):
+        elif len(a2.path) == 0 and (len(a1.path) > 1):
 
             currentLayer = a1.path[a1.i].Z_value
 
-    elif (len(a1.path) == 0) and (len(a2.path) > 1):
-
-        currentLayer = a2.path[a2.i].Z_value
-
-    elif len(a2.path) == 0 and (len(a1.path) > 1):
+    elif not (a1.i == len(a1.path)):
 
         currentLayer = a1.path[a1.i].Z_value
+
+    if currentLayer != layerNo:
+
+        currentLayerNo += 1
 
 
 def drawModel(arm):
@@ -104,7 +122,7 @@ def drawModel(arm):
 
             elif arm.doneExtruding == False:
 
-                arm.Extrude(speed)
+                arm.extrude(speed)
 
                 if arm.path[arm.i].E_value != 0:
 
@@ -195,8 +213,15 @@ def writeOutput(arm):
 
         G = "G" + str(point.G_value)
         F = " F" + str(point.F_value)
-        X = " X" + str(round(point.X_value, 3))
-        Y = " Y" + str(round(point.Y_value, 3))
+        # X = " X" + str(round(point.X_value, 3))
+        # Y = " Y" + str(round(point.Y_value, 3))
+
+        # using ikine
+
+        t1, t2 = IKine(point.X_value, point.Y_value)
+
+        X = " T1 " + str(round(t1, 3))
+        Y = " T2 " + str(round(t2, 3))
 
         if point.Z_value != current_Z:
             Z = " Z" + str(round(point.Z_value, 1))
@@ -234,7 +259,6 @@ if debug == "on":
     for segment in layer.segments_in_layer:
 
         segment.print_segment()
-
 
 # PART 5 - Segment sorter
 
@@ -322,7 +346,7 @@ while True:
     else:
 
         a1.doneWithLayer = True
-        a1.i = 1
+        # a1.i = 1
 
     if len(a2.path) > 0:
 
@@ -330,7 +354,7 @@ while True:
     else:
 
         a2.doneWithLayer = True
-        a2.i = 1
+        # a2.i = 1
 
     pygame.draw.circle(
         gameDisplay, red, [int(a1.printheadPos[0]), int(a1.printheadPos[1])], 3
@@ -381,9 +405,13 @@ while True:
     text_rect = textsurface.get_rect(center=(200, 70))
     gameDisplay.blit(textsurface, text_rect)
 
-    textsurface = myfont.render("Layer: " + str(currentLayer), True, black)
+    textsurface = myfont.render("Layer: " + str(currentLayerNo), True, black)
     text_rect = textsurface.get_rect(center=(100, 50))
     gameDisplay.blit(textsurface, text_rect)
+
+    # textsurface = myfont.render("Layer: " + str(currentLayer), True, black)
+    # text_rect = textsurface.get_rect(center=(100, 50))
+    # gameDisplay.blit(textsurface, text_rect)
 
     textsurface = myfont.render("ms: " + str(round(milliseconds)), True, black)
     text_rect = textsurface.get_rect(center=(300, 50))

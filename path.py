@@ -1,4 +1,4 @@
-from math import sqrt
+import math
 from classes import *
 
 
@@ -131,6 +131,14 @@ def segment_sorting(layers, clearance, mode):
 
                     layer.a1_segments.append(segment)
 
+    # elif mode == 3:
+
+    #     for layer in layers:
+
+    #         for segment in layer.segments_in_layer:
+
+    #             layer.a1_segments.append(segment)
+
 
 ##        if len(layer.a1_segments) > len(layer.a2_segments):
 ##            layer.a1_segments = layer.a1_segments + layer.limbo_segments
@@ -142,7 +150,7 @@ def get_closest_segment(segments_list, current_point):
     return segments_list.index(
         min(
             segments_list,
-            key=lambda Segment: sqrt(
+            key=lambda Segment: math.sqrt(
                 (Segment.points[0].X_value - current_point.X_value) ** 2
                 + (Segment.points[0].Y_value - current_point.Y_value) ** 2
             ),
@@ -164,30 +172,60 @@ def path_gen_also(segment_list, home):
         current_point = unvisited[i].points[-1]
         del unvisited[i]
 
-    return path
+    return current_point, path
 
 
 def path_gen(layers, home1, home2, mode):
 
     a1_path = []
     a2_path = []
+    a1_last = home1
+    a2_last = home2
 
     for layer in layers:
 
-        ordered_a1 = path_gen_also(layer.a1_segments, home1)
-        ordered_a2 = path_gen_also(layer.a2_segments, home2)
+        if mode == 1 or mode == 2:
+            a1_last, ordered_a1 = path_gen_also(layer.a1_segments, home1)
+            a2_last, ordered_a2 = path_gen_also(layer.a2_segments, home2)
 
-        a1_path += ordered_a1
-        a2_path += ordered_a2
+            a1_path += ordered_a1
+            a2_path += ordered_a2
 
-        # if mode == 1:
-        if len(ordered_a1) > len(ordered_a2):  # if there are more a1 segments than a2
-            limbo_path = path_gen_also(layer.limbo_segments, a1_path[-1])
-            a1_path += limbo_path  # add limbo list to a1
+            if len(ordered_a1) > len(
+                ordered_a2
+            ):  # if there are more a1 segments than a2
+                limbo_path = path_gen_also(layer.limbo_segments, a1_last)[1]
+                a1_path += limbo_path  # add limbo list to a1
 
-        elif len(ordered_a1) <= len(ordered_a2):
-            limbo_path = path_gen_also(layer.limbo_segments, a2_path[-1])
-            a2_path += limbo_path
+            elif len(ordered_a1) <= len(ordered_a2):
+                limbo_path = path_gen_also(layer.limbo_segments, a2_last)[1]
+                a2_path += limbo_path
+
+        elif mode == 3:
+
+            for point in layer.points:
+
+                a1_path.append(point)
 
     return a1_path, a2_path
 
+
+def calcAngle(reqcos):
+    res = math.atan2(math.sqrt(1 - math.pow(reqcos, 2)), reqcos)
+    return res
+
+
+def IKine(X, Y):
+    px = X
+    py = Y
+    l1 = 141  # link 1 length
+    l2 = 141  # link 2 length
+
+    ctheta2 = (px ** 2 + py ** 2 - l1 ** 2 - l2 ** 2) / (2 * l1 * l2)
+    stheta2 = math.sqrt(1 - math.pow(ctheta2, 2))
+    ctheta1 = (px * (l1 + l2 * ctheta2) + py * l2 * stheta2) / (px ** 2 + py ** 2)
+
+    theta1 = calcAngle(ctheta1)  # elbow down
+    theta2 = calcAngle(ctheta2)
+
+    return math.degrees(theta1), math.degrees(theta2)

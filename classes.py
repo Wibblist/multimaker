@@ -58,7 +58,9 @@ class Layer:  # contains every point and segment
     # add point to all points list
     def add_point(self, G_value, F_value, X_value, Y_value, Z_value, E_value, support):
 
-        self.points.append(Point(G_value, F_value, X_value, Y_value, Z_value, E_value, support))
+        self.points.append(
+            Point(G_value, F_value, X_value, Y_value, Z_value, E_value, support)
+        )
 
     # debugging
     def print_layer(self):
@@ -104,7 +106,7 @@ class Arm:
         self.path = []
         self.doneWithLayer = False  #
 
-    def Extrude(self, speed):
+    def extrude(self, speed):
 
         start = self.path[self.i - 1]
         end = self.path[self.i]
